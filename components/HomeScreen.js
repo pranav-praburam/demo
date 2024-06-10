@@ -23,7 +23,8 @@ function HomeContent() {
     return () => clearInterval(interval);
   }, [startTimer]);
 
-  const secondsInHour = 3600;
+  const secondsInMinute = 60;
+  const secondsInHour = secondsInMinute * 60;
   const secondsInDay = secondsInHour * 24;
   const secondsInWeek = secondsInDay * 7;
   const secondsInYear = secondsInDay * 365;
@@ -32,14 +33,15 @@ function HomeContent() {
   const weeks = Math.floor((seconds % secondsInYear) / secondsInWeek);
   const days = Math.floor((seconds % secondsInWeek) / secondsInDay);
   const hours = Math.floor((seconds % secondsInDay) / secondsInHour);
-  const remainingSeconds = seconds % secondsInHour;
+  const minutes = Math.floor((seconds % secondsInHour) / secondsInMinute);
+  const remainingSeconds = seconds % secondsInMinute;
 
   return (
     <View style={{ flex: 1, justifyContent: 'center' }}>
       <View style={{ alignSelf: 'center' }}>
         <Text style={{ fontSize: 20 }}>Quit your vices now</Text>
         <Text style={{ fontSize: 30 }}>Time since you've quit:</Text>
-        <Text style={{ fontSize: 30 }}>{years} years, {weeks} weeks, {days} days, {hours} hours, {remainingSeconds} seconds</Text>
+        <Text style={{ fontSize: 30 }}>{years} years, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {remainingSeconds} seconds</Text>
       </View>
       <View style={{ alignSelf: 'center' }}>
         <TouchableOpacity
@@ -63,9 +65,9 @@ function HomeScreen() {
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={HomeContent} />
-      <Tab.Screen name="Tab One" component={TabOne} />
-      <Tab.Screen name="Tab Two" component={TabTwo} />
-      <Tab.Screen name="Tab Three" component={TabThree} />
+      <Tab.Screen name="My Vices" component={TabOne} />
+      <Tab.Screen name="Milestones" component={TabTwo} />
+      <Tab.Screen name="About Us" component={TabThree} />
     </Tab.Navigator>
   );
 }

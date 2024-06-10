@@ -1,17 +1,16 @@
 // HomeScreen.js
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TabOne from './TabOne';
 import TabTwo from './TabTwo';
 import TabThree from './TabThree';
+import TimerContext from 'C:/Users/15088/OneDrive/Desktop/COSI 153/demo/components/TimerContext.js';
 
 const Tab = createBottomTabNavigator();
 
 function HomeContent() {
-  const [startTimer, setStartTimer] = useState(false);
-  const [seconds, setSeconds] = useState(0);
+    const { startTimer, setStartTimer, seconds, setSeconds } = useContext(TimerContext);
 
   useEffect(() => {
     let interval = null;

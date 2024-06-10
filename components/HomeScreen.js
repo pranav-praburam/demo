@@ -23,11 +23,23 @@ function HomeContent() {
     return () => clearInterval(interval);
   }, [startTimer]);
 
+  const secondsInHour = 3600;
+  const secondsInDay = secondsInHour * 24;
+  const secondsInWeek = secondsInDay * 7;
+  const secondsInYear = secondsInDay * 365;
+
+  const years = Math.floor(seconds / secondsInYear);
+  const weeks = Math.floor((seconds % secondsInYear) / secondsInWeek);
+  const days = Math.floor((seconds % secondsInWeek) / secondsInDay);
+  const hours = Math.floor((seconds % secondsInDay) / secondsInHour);
+  const remainingSeconds = seconds % secondsInHour;
+
   return (
     <View style={{ flex: 1, justifyContent: 'center' }}>
       <View style={{ alignSelf: 'center' }}>
         <Text style={{ fontSize: 20 }}>Quit your vices now</Text>
-        <Text style={{ fontSize: 30 }}>Seconds since you've quit: {seconds}</Text>
+        <Text style={{ fontSize: 30 }}>Time since you've quit:</Text>
+        <Text style={{ fontSize: 30 }}>{years} years, {weeks} weeks, {days} days, {hours} hours, {remainingSeconds} seconds</Text>
       </View>
       <View style={{ alignSelf: 'center' }}>
         <TouchableOpacity

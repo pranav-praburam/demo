@@ -5,7 +5,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from 'C:/Users/15088/OneDrive/Desktop/COSI 153/demo/components/HomeScreen.js';
 
-
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -13,7 +12,6 @@ function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="NotMyVice" component={HomeScreen} />
-        <Stack.Screen name="Details" component={DetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

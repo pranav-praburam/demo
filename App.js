@@ -1,4 +1,4 @@
 // App.js
 
-import App from './components/Te1.js';
+import App from './components/PA.js';
 export default App;

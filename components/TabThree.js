@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import TimerContext from './TimerContext.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function TabThree() {
   const { startTimer, setStartTimer } = useContext(TimerContext);
@@ -17,6 +18,44 @@ function TabThree() {
   const [hours2, setHours2] = useState(0);
   const [days2, setDays2] = useState(0);
   const [years2, setYears2] = useState(0);
+
+  const saveTimerState = async () => {
+    try {
+      await AsyncStorage.setItem('timerState', JSON.stringify({ seconds, minutes, hours, days, years }));
+      await AsyncStorage.setItem('timerState2', JSON.stringify({ seconds2, minutes2, hours2, days2, years2 }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const loadTimerState = async () => {
+    try {
+      const timerState = await AsyncStorage.getItem('timerState');
+      const timerState2 = await AsyncStorage.getItem('timerState2');
+      if (timerState !== null) {
+        const { seconds, minutes, hours, days, years } = JSON.parse(timerState);
+        setSeconds(seconds);
+        setMinutes(minutes);
+        setHours(hours);
+        setDays(days);
+        setYears(years);
+      }
+      if (timerState2 !== null) {
+        const { seconds2, minutes2, hours2, days2, years2 } = JSON.parse(timerState2);
+        setSeconds2(seconds2);
+        setMinutes2(minutes2);
+        setHours2(hours2);
+        setDays2(days2);
+        setYears2(years2);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    loadTimerState();
+  }, []);
 
   useEffect(() => {
     let interval = null;
@@ -56,16 +95,20 @@ function TabThree() {
       setDays(0);
       setYears(0);
     }
-    return () => clearInterval(interval);
-  }, [startTimer]);
+    return () => {
+      clearInterval(interval);
+      saveTimerState();
+    };
+  }, [startTimer, seconds, minutes, hours, days, years]);
 
-  const resetTimer = () => {
+  const resetTimer = async () => {
     setStartTimer(false);
     setSeconds(0);
     setMinutes(0);
     setHours(0);
     setDays(0);
     setYears(0);
+    await AsyncStorage.removeItem('timerState');
   };
 
   useEffect(() => {
@@ -80,7 +123,7 @@ function TabThree() {
                   if (hours2 === 23) {
                     setDays2(days2 => {
                       if (days2 === 365) {
-                        setYears(years2 => years2 + 1);
+                        setYears2(years2 => years2 + 1);
                         return 0;
                       }
                       return days2 + 1;
@@ -106,16 +149,20 @@ function TabThree() {
       setDays2(0);
       setYears2(0);
     }
-    return () => clearInterval(interval2);
-  }, [startTimer2]);
+    return () => {
+      clearInterval(interval2);
+      saveTimerState();
+    };
+  }, [startTimer2, seconds2, minutes2, hours2, days2, years2]);
 
-  const resetTimer2 = () => {
+  const resetTimer2 = async () => {
     setStartTimer2(false);
     setSeconds2(0);
     setMinutes2(0);
     setHours2(0);
     setDays2(0);
     setYears2(0);
+    await AsyncStorage.removeItem('timerState2');
   };
 
   return (

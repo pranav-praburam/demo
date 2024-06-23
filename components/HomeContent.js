@@ -80,7 +80,7 @@ const HomeContent = () => {
     <View style={{ flex: 1, justifyContent: 'center' }}>
       {/* First Timer Display and Control Button */}
       <View style={{ alignSelf: 'center' }}>
-        <Text style={{ fontSize: 20 }}>First Timer</Text>
+        <Text style={{ fontSize: 20 }}> Quit Smoking Cigarettes!</Text>
         <Text style={{ fontSize: 30 }}>
           Timer: {years} years {days} days {hours} hours {minutes} minutes {seconds} seconds
         </Text>
@@ -99,7 +99,7 @@ const HomeContent = () => {
       </View>
       {/* Second Timer Display and Control Button */}
       <View style={{ alignSelf: 'center', marginTop: 20 }}>
-        <Text style={{ fontSize: 20 }}>Second Timer</Text>
+        <Text style={{ fontSize: 20 }}>Quit Vaping! </Text>
         <Text style={{ fontSize: 30 }}>
           Timer: {years2} years {days2} days {hours2} hours {minutes2} minutes {seconds2} seconds
         </Text>

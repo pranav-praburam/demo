@@ -1,33 +1,45 @@
-// TabTwo.js
+// Fixed TabTwo.js
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Button } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Button, Image } from 'react-native';
+
+// Step 1: Import the images
+// Adjust the import paths to use relative paths
+import popup1 from '../assets/popup1.webp';
+import popup2 from '../assets/popup2.webp';
+import popup3 from '../assets/popup3.webp';
+import popup4 from '../assets/popup4.webp';
 
 function TabTwo() {
+  // Step 2: Update state to include image
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState('');
-  const [popupText, setPopupText] = useState('');
+  const [modalImage, setModalImage] = useState(null); // Initialize with null or a default image
 
-  const handleBoxPress = (text, popupText) => {
-    setPopupText(popupText);
+  // Step 3: Pass image to handleBoxPress function
+  const handleBoxPress = (text, popupMessage, image) => {
+    setModalText(popupMessage);
+    setModalImage(image); // Set the image in the state
     setModalVisible(true);
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 minute of Sobriety', 'one')}>
-        <Text style={styles.boxText}>1 minute of Sobriety</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 week of Sobriety', 'two')}>
-        <Text style={styles.boxText}>1 week of Sobriety</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 month of Sobriety', 'three')}>
-        <Text style={styles.boxText}>1 month of Sobriety</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 year of Sobriety', 'four')}>
-        <Text style={styles.boxText}>1 year of Sobriety</Text>
-      </TouchableOpacity>
+    {/* Pass the corresponding image when calling handleBoxPress */}
+    <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 minute of Sobriety', 'Congratulations on 1 minute of sobriety!', popup1)}>
+      <Text style={styles.boxText}>1 minute of Sobriety</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 week of Sobriety', 'Great job on achieving 1 week of sobriety!', popup2)}>
+      <Text style={styles.boxText}>1 week of Sobriety</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 month of Sobriety', 'Amazing! 1 month of sobriety is a significant milestone!', popup3)}>
+      <Text style={styles.boxText}>1 month of Sobriety</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.box} onPress={() => handleBoxPress('1 year of Sobriety', 'Incredible achievement! 1 year of sobriety is truly commendable!', popup4)}>
+      <Text style={styles.boxText}>1 year of Sobriety</Text>
+    </TouchableOpacity>
 
+      {/* Step 4: Use the image state in the Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -39,6 +51,7 @@ function TabTwo() {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>{modalText}</Text>
+            <Image source={modalImage} style={styles.image} />
             <Button title="Close" onPress={() => setModalVisible(false)} />
           </View>
         </View>
@@ -92,6 +105,11 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: 'center'
+  },
+  image: {
+    width: 300, // Adjust the width as needed
+    height: 300, // Adjust the height as needed
+    marginBottom: 15,
   }
 });
 

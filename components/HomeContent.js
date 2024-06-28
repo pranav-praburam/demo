@@ -4,7 +4,7 @@ import TimerContext from './TimerContext.js';
 import { saveTimerState, loadTimerState } from './AsyncStorageHandler'; // Import AsyncStorage functions
 
 const HomeContent = () => {
-  const { startTimer, setStartTimer, startTimer2, setStartTimer2 } = useContext(TimerContext);
+  const { startTimer, setStartTimer, startTimer2, setStartTimer2, startTimer3, setStartTimer3, startTimer4, setStartTimer4} = useContext(TimerContext);
 
   // Timer states initialization
   const [seconds, setSeconds] = useState(0);
@@ -17,6 +17,19 @@ const HomeContent = () => {
   const [hours2, setHours2] = useState(0);
   const [days2, setDays2] = useState(0);
   const [years2, setYears2] = useState(0);
+  // Timer 3 state initialization
+const [seconds3, setSeconds3] = useState(0);
+const [minutes3, setMinutes3] = useState(0);
+const [hours3, setHours3] = useState(0);
+const [days3, setDays3] = useState(0);
+const [years3, setYears3] = useState(0);
+
+// Timer 4 state initialization
+const [seconds4, setSeconds4] = useState(0);
+const [minutes4, setMinutes4] = useState(0);
+const [hours4, setHours4] = useState(0);
+const [days4, setDays4] = useState(0);
+const [years4, setYears4] = useState(0);
 
   // Load timer states from AsyncStorage on component mount
   useEffect(() => {
@@ -37,6 +50,24 @@ const HomeContent = () => {
         setDays2(timer2State.days);
         setYears2(timer2State.years);
       }
+
+      const timer3State = await loadTimerState('timer3');
+    if (timer3State) {
+      setSeconds3(timer3State.seconds);
+      setMinutes3(timer3State.minutes);
+      setHours3(timer3State.hours);
+      setDays3(timer3State.days);
+      setYears3(timer3State.years);
+    }
+    // Loading state for timer 4
+    const timer4State = await loadTimerState('timer4');
+    if (timer4State) {
+      setSeconds4(timer4State.seconds);
+      setMinutes4(timer4State.minutes);
+      setHours4(timer4State.hours);
+      setDays4(timer4State.days);
+      setYears4(timer4State.years);
+    }
     };
     loadState();
   }, []);
@@ -129,7 +160,92 @@ const HomeContent = () => {
     };
   }, [startTimer2, seconds2, minutes2, hours2, days2, years2]);
 
-  // UI for both timers and their control buttons
+  useEffect(() => {
+    let interval3 = null;
+    if (startTimer3) {
+      interval3 = setInterval(() => {
+        setSeconds3(prevSeconds3 => {
+          if (prevSeconds3 === 59) {
+            setMinutes3(prevMinutes3 => {
+              if (prevMinutes3 === 59) {
+                setHours3(prevHours3 => {
+                  if (prevHours3 === 23) {
+                    setDays3(prevDays3 => {
+                      if (prevDays3 === 365) {
+                        setYears3(prevYears3 => prevYears3 + 1);
+                        return 0;
+                      }
+                      return prevDays3 + 1;
+                    });
+                    return 0;
+                  }
+                  return prevHours3 + 1;
+                });
+                return 0;
+              }
+              return prevMinutes3 + 1;
+            });
+            return 0;
+          }
+          return prevSeconds3 + 1;
+        });
+      }, 1000);
+    } else {
+      setSeconds3(0);
+      setMinutes3(0);
+      setHours3(0);
+      setDays3(0);
+      setYears3(0);
+    }
+    return () => {
+      clearInterval(interval3);
+      saveTimerState('timer3', { seconds3, minutes3, hours3, days3, years3 });
+    };
+  }, [startTimer3, seconds3, minutes3, hours3, days3, years3]);
+  useEffect(() => {
+    let interval4 = null;
+    if (startTimer4) {
+      interval4 = setInterval(() => {
+        setSeconds4(prevSeconds4 => {
+          if (prevSeconds4 === 59) {
+            setMinutes4(prevMinutes4 => {
+              if (prevMinutes4 === 59) {
+                setHours4(prevHours4 => {
+                  if (prevHours4 === 23) {
+                    setDays4(prevDays4 => {
+                      if (prevDays4 === 365) {
+                        setYears4(prevYears4 => prevYears4 + 1);
+                        return 0;
+                      }
+                      return prevDays4 + 1;
+                    });
+                    return 0;
+                  }
+                  return prevHours4 + 1;
+                });
+                return 0;
+              }
+              return prevMinutes4 + 1;
+            });
+            return 0;
+          }
+          return prevSeconds4 + 1;
+        });
+      }, 1000);
+    } else {
+      setSeconds4(0);
+      setMinutes4(0);
+      setHours4(0);
+      setDays4(0);
+      setYears4(0);
+    }
+    return () => {
+      clearInterval(interval4);
+      saveTimerState('timer4', { seconds4, minutes4, hours4, days4, years4 });
+    };
+  }, [startTimer4, seconds4, minutes4, hours4, days4, years4]);
+  
+  // UI for all timers and their control buttons
   return (
     <View style={{ flex: 1, justifyContent: 'center' }}>
       {/* First Timer Display and Control Button */}
@@ -168,6 +284,44 @@ const HomeContent = () => {
           onPress={() => setStartTimer2(!startTimer2)}
         >
           <Text style={{ color: 'white', fontSize: 18 }}>{startTimer2 ? 'STOP' : 'START'}</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Third Timer Display and Control Button */}
+      <View style={{ alignSelf: 'center', marginTop: 20 }}>
+        <Text style={{ fontSize: 20 }}>Quit drinking!</Text>
+        <Text style={{ fontSize: 30 }}>
+          Timer: {years3} years {days3} days {hours3} hours {minutes3} minutes {seconds3} seconds
+        </Text>
+        <TouchableOpacity
+          style={{
+            backgroundColor: 'green',
+            padding: 10,
+            borderRadius: 5,
+            width: 200,
+            alignItems: 'center'
+          }}
+          onPress={() => setStartTimer3(!startTimer3)}
+        >
+          <Text style={{ color: 'white', fontSize: 18 }}>{startTimer3 ? 'STOP' : 'START'}</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Fourth Timer Display and Control Button */}
+      <View style={{ alignSelf: 'center', marginTop: 20 }}>
+        <Text style={{ fontSize: 20 }}>Quit Gambling!</Text>
+        <Text style={{ fontSize: 30 }}>
+          Timer: {years4} years {days4} days {hours4} hours {minutes4} minutes {seconds4} seconds
+        </Text>
+        <TouchableOpacity
+          style={{
+            backgroundColor: 'orange',
+            padding: 10,
+            borderRadius: 5,
+            width: 200,
+            alignItems: 'center'
+          }}
+          onPress={() => setStartTimer4(!startTimer4)}
+        >
+          <Text style={{ color: 'white', fontSize: 18 }}>{startTimer4 ? 'STOP' : 'START'}</Text>
         </TouchableOpacity>
       </View>
     </View>

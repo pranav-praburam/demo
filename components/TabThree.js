@@ -19,10 +19,28 @@ function TabThree() {
   const [days2, setDays2] = useState(0);
   const [years2, setYears2] = useState(0);
 
+   // Third timer state
+  const { startTimer3, setStartTimer3 } = useContext(TimerContext);
+  const [seconds3, setSeconds3] = useState(0);
+  const [minutes3, setMinutes3] = useState(0);
+  const [hours3, setHours3] = useState(0);
+  const [days3, setDays3] = useState(0);
+  const [years3, setYears3] = useState(0);
+
+  // Fourth timer state
+  const { startTimer4, setStartTimer4 } = useContext(TimerContext);
+  const [seconds4, setSeconds4] = useState(0);
+  const [minutes4, setMinutes4] = useState(0);
+  const [hours4, setHours4] = useState(0);
+  const [days4, setDays4] = useState(0);
+  const [years4, setYears4] = useState(0);
+
   const saveTimerState = async () => {
     try {
       await AsyncStorage.setItem('timerState', JSON.stringify({ seconds, minutes, hours, days, years }));
       await AsyncStorage.setItem('timerState2', JSON.stringify({ seconds2, minutes2, hours2, days2, years2 }));
+      await AsyncStorage.setItem('timerState3', JSON.stringify({ seconds3, minutes3, hours3, days3, years3 }));
+      await AsyncStorage.setItem('timerState4', JSON.stringify({ seconds4, minutes4, hours4, days4, years4 }));
     } catch (e) {
       console.error(e);
     }
@@ -32,6 +50,8 @@ function TabThree() {
     try {
       const timerState = await AsyncStorage.getItem('timerState');
       const timerState2 = await AsyncStorage.getItem('timerState2');
+      const timerState3 = await AsyncStorage.getItem('timerState3');
+      const timerState4 = await AsyncStorage.getItem('timerState4');
       if (timerState !== null) {
         const { seconds, minutes, hours, days, years } = JSON.parse(timerState);
         setSeconds(seconds);
@@ -47,6 +67,22 @@ function TabThree() {
         setHours2(hours2);
         setDays2(days2);
         setYears2(years2);
+      }
+      if (timerState3 !== null) {
+        const { seconds3, minutes3, hours3, days3, years3 } = JSON.parse(timerState3);
+        setSeconds3(seconds3);
+        setMinutes3(minutes3);
+        setHours3(hours3);
+        setDays3(days3);
+        setYears3(years3);
+      }
+      if (timerState4 !== null) {
+        const { seconds4, minutes4, hours4, days4, years4 } = JSON.parse(timerState4);
+        setSeconds4(seconds4);
+        setMinutes4(minutes4);
+        setHours4(hours4);
+        setDays4(days4);
+        setYears4(years4);
       }
     } catch (e) {
       console.error(e);
@@ -165,6 +201,114 @@ function TabThree() {
     await AsyncStorage.removeItem('timerState2');
   };
 
+  useEffect(() => {
+    let interval3 = null;
+    if (startTimer3) {
+      interval3 = setInterval(() => {
+        setSeconds3(seconds3 => {
+          if (seconds3 === 59) {
+            setMinutes3(minutes3 => {
+              if (minutes3 === 59) {
+                setHours3(hours3 => {
+                  if (hours3 === 23) {
+                    setDays3(days3 => {
+                      if (days3 === 365) {
+                        setYears3(years3 => years3 + 1);
+                        return 0;
+                      }
+                      return days3 + 1;
+                    });
+                    return 0;
+                  }
+                  return hours3 + 1;
+                });
+                return 0;
+              }
+              return minutes3 + 1;
+            });
+            return 0;
+          }
+          return seconds3 + 1;
+        });
+      }, 1000);
+    } else {
+      // Reset timer when stopped
+      setSeconds3(0);
+      setMinutes3(0);
+      setHours3(0);
+      setDays3(0);
+      setYears3(0);
+    }
+    return () => {
+      clearInterval(interval3);
+      saveTimerState();
+    };
+  }, [startTimer3, seconds3, minutes3, hours3, days3, years3]);
+
+  const resetTimer3 = async () => {
+    setStartTimer3(false);
+    setSeconds3(0);
+    setMinutes3(0);
+    setHours3(0);
+    setDays3(0);
+    setYears3(0);
+    await AsyncStorage.removeItem('timerState3');
+  };
+  useEffect(() => {
+    let interval4 = null;
+    if (startTimer4) {
+      interval4 = setInterval(() => {
+        setSeconds4(seconds4 => {
+          if (seconds4 === 59) {
+            setMinutes4(minutes4 => {
+              if (minutes4 === 59) {
+                setHours4(hours4 => {
+                  if (hours4 === 23) {
+                    setDays4(days4 => {
+                      if (days4 === 365) {
+                        setYears4(years4 => years4 + 1);
+                        return 0;
+                      }
+                      return days4 + 1;
+                    });
+                    return 0;
+                  }
+                  return hours4 + 1;
+                });
+                return 0;
+              }
+              return minutes4 + 1;
+            });
+            return 0;
+          }
+          return seconds4 + 1;
+        });
+      }, 1000);
+    } else {
+      // Reset timer when stopped
+      setSeconds4(0);
+      setMinutes4(0);
+      setHours4(0);
+      setDays4(0);
+      setYears4(0);
+    }
+    return () => {
+      clearInterval(interval4);
+      saveTimerState();
+    };
+  }, [startTimer4, seconds4, minutes4, hours4, days4, years4]);
+
+  const resetTimer4 = async () => {
+    setStartTimer4(false);
+    setSeconds4(0);
+    setMinutes4(0);
+    setHours4(0);
+    setDays4(0);
+    setYears4(0);
+    await AsyncStorage.removeItem('timerState4');
+  };
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.timerText}>
@@ -172,6 +316,12 @@ function TabThree() {
       </Text>
       <Text style={styles.timerText}>
         Quit Vaping! {years2}y {days2}d {hours2}h {minutes2}m {seconds2}s
+      </Text>
+      <Text style={styles.timerText}>
+        Quit drinking alcohol! {years3}y {days3}d {hours3}h {minutes3}m {seconds3}s
+      </Text>
+      <Text style={styles.timerText}>
+        Quit Gambling! {years4}y {days4}d {hours4}h {minutes4}m {seconds4}s
       </Text>
       <Text style={styles.text}>
         Hey there quitters! Growing up we've been told never to quit, but as we grow older, we realize that some things are worth letting go of in life. 
@@ -183,6 +333,12 @@ function TabThree() {
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={resetTimer2}>
         <Text style={styles.buttonText}>Reset Timer 2</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={resetTimer3}>
+        <Text style={styles.buttonText}>Reset Timer 3</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={resetTimer4}>
+        <Text style={styles.buttonText}>Reset Timer 4</Text>
       </TouchableOpacity>
     </View>
   );

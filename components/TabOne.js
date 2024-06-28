@@ -6,20 +6,20 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 function BoxScreen({ navigation }) {
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.box} onPress={() => navigation.navigate('Cigarettes')}>
-        <Text style={styles.boxText}>Cigarettes</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.box} onPress={() => navigation.navigate('Vaping')}>
-        <Text style={styles.boxText}>Vaping</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.box} onPress={() => navigation.navigate('Alcohol')}>
-        <Text style={styles.boxText}>Alcohol</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.box} onPress={() => navigation.navigate('Gambling')}>
-        <Text style={styles.boxText}>Gambling</Text>
-      </TouchableOpacity>
-    </View>
+<View style={styles.container}>
+<TouchableOpacity style={[styles.box, {backgroundColor: 'red'}]} onPress={() => navigation.navigate('Cigarettes')}>
+<Text style={styles.boxText}>Cigarettes</Text>
+</TouchableOpacity>
+<TouchableOpacity style={[styles.box, {backgroundColor: 'blue'}]} onPress={() => navigation.navigate('Vaping')}>
+<Text style={styles.boxText}>Vaping</Text>
+</TouchableOpacity>
+<TouchableOpacity style={[styles.box, {backgroundColor: 'green'}]} onPress={() => navigation.navigate('Alcohol')}>
+<Text style={styles.boxText}>Alcohol</Text>
+</TouchableOpacity>
+<TouchableOpacity style={[styles.box, {backgroundColor: 'orange'}]} onPress={() => navigation.navigate('Gambling')}>
+<Text style={styles.boxText}>Gambling</Text>
+</TouchableOpacity>
+</View>
   );
 }
 
@@ -58,7 +58,7 @@ const Stack = createStackNavigator();
 function TabOne() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="BoxScreen" component={BoxScreen} options={{ title: 'Vices' }} />
+      <Stack.Screen name="BoxScreen" component={BoxScreen}  />
       <Stack.Screen name="Cigarettes" component={Box1} />
       <Stack.Screen name="Vaping" component={Box2} />
       <Stack.Screen name="Alcohol" component={Box3} />
@@ -75,12 +75,13 @@ const styles = StyleSheet.create({
     padding: 20
   },
   box: {
-    width: '100%',
-    height: 50,
+    width: '80%', // Reduced width
+    height: 70, // Increased height
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
-    backgroundColor: '#841584'
+    borderRadius: 20, // Added rounded corners
+    // backgroundColor is now set individually for each box below
   },
   boxText: {
     color: '#fff',

@@ -146,8 +146,8 @@ footer .names { font-size: 44px; }
 <div class="wrap">
   <header class="hero">
     <div class="frame">
-      <video id="vid" src="invitation.mp4" poster="poster.jpg" playsinline muted loop preload="metadata" controls></video>
-      <button class="play" id="playBtn" type="button">▶ Play with music</button>
+      <video id="vid" poster="poster.jpg" playsinline loop controls></video>
+      <button class="play" id="playBtn" type="button" disabled>Loading video…</button>
     </div>
     <div>
       <div class="eyebrow">Silver Jubilee · 1 Day Celebration</div>
@@ -292,8 +292,12 @@ const $ = (id) => document.getElementById(id);
 
 // video: start with sound on tap
 const vid = $("vid"), playBtn = $("playBtn");
-playBtn.addEventListener("click", () => { vid.muted = false; vid.currentTime = 0; vid.play().catch(() => {}); playBtn.hidden = true; });
-vid.addEventListener("play", () => { if (!vid.muted) playBtn.hidden = true; });
+// load the video as a blob so it plays inside the viewer's sandbox on every device
+fetch("invitation.mp4").then((r) => { if (!r.ok) throw 0; return r.blob(); })
+  .then((b) => { vid.src = URL.createObjectURL(new Blob([b], { type: "video/mp4" })); playBtn.disabled = false; playBtn.textContent = "▶ Play with music"; })
+  .catch(() => { vid.src = "invitation.mp4"; playBtn.disabled = false; playBtn.textContent = "▶ Play with music"; });
+playBtn.addEventListener("click", () => { vid.muted = false; vid.currentTime = 0; vid.play().catch(() => { playBtn.textContent = "Tap the video to play"; }); playBtn.hidden = true; });
+vid.addEventListener("play", () => { playBtn.hidden = true; });
 
 // calendar
 const cal = new URL("https://calendar.google.com/calendar/render");

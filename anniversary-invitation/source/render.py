@@ -101,6 +101,29 @@ def cover(img, z=1.0, fx=0.5, fy=0.5):
     M = np.array([[W / cw, 0, -x0 * W / cw], [0, H / ch, -y0 * H / ch]], np.float32)
     return cv2.warpAffine(img, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
 
+def load_layer(name, size=None):
+    plate = Image.open(S + f"/build/{name}_plate.png").convert("RGB")
+    mask = Image.open(S + f"/build/{name}_mask.png").convert("L")
+    if size: plate, mask = plate.resize(size, Image.LANCZOS), mask.resize(size, Image.LANCZOS)
+    return np.array(plate).astype(np.float32), (np.array(mask).astype(np.float32) / 255)[..., None]
+
+def alive(base, plate, mask, t, ax, ay, amp=1.0):
+    """subtle life: breathing + gentle sway of the people, parallax against the background plate."""
+    h, w = base.shape[:2]
+    sy = 1 + 0.0065 * amp * math.sin(2 * math.pi * t / 3.6)
+    sx = 1 - 0.002 * amp * math.sin(2 * math.pi * t / 3.6)
+    ang = math.radians(0.4 * amp * math.sin(2 * math.pi * t / 6.2 + 0.8))
+    dx = 7 * amp * math.sin(2 * math.pi * t / 8.5)
+    c, s_ = math.cos(ang), math.sin(ang)
+    A = np.array([[c * sx, -s_ * sy], [s_ * sx, c * sy]])
+    off = np.array([ax, ay]) - A @ np.array([ax, ay]) + np.array([dx, 0])
+    M = np.hstack([A, off[:, None]]).astype(np.float32)
+    fg = cv2.warpAffine(base, M, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    m = cv2.warpAffine(mask, M, (w, h), flags=cv2.INTER_LINEAR)[..., None]
+    Mb = np.float32([[1, 0, -0.5 * dx], [0, 1, 0]])
+    bg = cv2.warpAffine(plate, Mb, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    return bg * (1 - m) + fg * m
+
 def vgrad(y0, y1, color, a0, a1):
     """vertical alpha band as RGBA layer covering full width."""
     h = y1 - y0
@@ -174,6 +197,9 @@ def vignette(fr, strength=0.35):
 couple = load(S + "/build/couple_silver.png")              # 1188x2160
 ganesha = load(S + "/build/ganesha_916.png")               # 1080x1920
 blur_c = cv2.GaussianBlur(couple, (0, 0), 28)
+c_plate, c_mask = load_layer("couple")
+CAX, CAY = couple.shape[1] * 0.5, couple.shape[0] * 0.955
+def couple_at(t, amp=1.0): return alive(couple, c_plate, c_mask, t, CAX, CAY, amp)
 
 def silver_wash(img, amt):
     g = img.mean(-1, keepdims=True)
@@ -212,31 +238,44 @@ class Scene:
 
 scenes = []
 
-# 1 Opening ---------------------------------------------------------------
-ring = Image.new("RGBA", (900, 900), (0, 0, 0, 0)); d = ImageDraw.Draw(ring)
-for r, wd in [(420, 3), (392, 2), (300, 2)]:
-    d.ellipse([450 - r, 450 - r, 450 + r, 450 + r], outline=(160, 166, 180, 255), width=wd)
-for k in range(24):
-    a = k * math.pi / 12
-    x, y = 450 + 406 * math.cos(a), 450 + 406 * math.sin(a)
-    d.ellipse([x - 7, y - 7, x + 7, y + 7], fill=(170, 176, 190, 255))
-    x2, y2 = 450 + 346 * math.cos(a + math.pi / 24), 450 + 346 * math.sin(a + math.pi / 24)
-    d.polygon([(450 + 300 * math.cos(a), 450 + 300 * math.sin(a)), (x2, y2),
-               (450 + 300 * math.cos(a + math.pi / 12), 450 + 300 * math.sin(a + math.pi / 12))],
-              outline=(175, 180, 194, 255))
-ring = np.array(ring).astype(np.float32); ring[..., 3] /= 255
+# 1 Opening: silver doors open on the Vanakkam welcome --------------------
+vk = np.array(Image.open(S + "/build/vanakkam_clean.png").convert("RGB").resize((1430, 2676), Image.LANCZOS)).astype(np.float32)
+DL, DR, DT, DB = 216, 1244, 536, 2600          # doorway in 2x image coords
+LEAF_L = np.concatenate([vk[DT:DB, 236:456], vk[DT:DB, 236:300][:, ::-1]], 1)  # clean outer part + mirrored stile
+LEAF_R = LEAF_L[:, ::-1].copy()
+OPEN_W = 326
+vk_plate, vk_mask = load_layer("vk", (1430, 2676))
+HALF = (DR - DL) // 2
+_gy, _gx = np.mgrid[0:vk.shape[0], 0:vk.shape[1]]
+DOOR_GLOW = np.exp(-(((_gx - 730) / 380) ** 2 + ((_gy - 1450) / 900) ** 2)).astype(np.float32)[..., None]
 def bg1(t):
-    fr = bg_soft.copy()
-    M = cv2.getRotationMatrix2D((450, 450), t * 6, 0.9 + 0.04 * t)
-    rr = cv2.warpAffine(ring, M, (900, 900))
-    over(fr, rr, 90, 430, ease(t / 1.5) * 0.9)
-    return fr
-s1 = [T("சுபம்", "TamilFullBold.ttf", 150, 760, 0.6, stops=DEEP, shadow=(255, 255, 255), shadow_a=1.0, glow=True),
-      El(ornament(560), 990, 1.4),
-      T("A Silver Jubilee Celebration", "Cinzel.ttf", 50, 1060, 1.8, stops=STEEL, shadow=(255, 255, 255), shadow_a=0.9),
-      T("25 Years of Togetherness", "Vibes.ttf", 74, 1150, 2.4,
-        stops=PLUM, shadow=(255, 255, 255), shadow_a=0.9)]
-scenes.append(Scene(5.5, bg1, s1, petals=False, vig=0.12))
+    img = alive(vk, vk_plate, vk_mask, t, 730, 2580, 0.9)
+    p = ease((t - 0.9) / 2.2)                   # 0 closed -> 1 open
+    fade = 1 - ease((t - 3.1) / 0.35)          # leaves dissolve into the photo's own open doors
+    if fade > 0:
+        for tex, side in ((LEAF_L, 0), (LEAF_R, 1)):
+            w = int(HALF * (1 - p) + OPEN_W * p)
+            leaf = cv2.resize(tex, (max(w, 2), DB - DT), interpolation=cv2.INTER_LINEAR)
+            shade = 1 - 0.18 * math.sin(math.pi * p)
+            leaf = leaf * shade
+            x0 = DL if side == 0 else DR - w
+            reg = img[DT:DB, x0:x0 + w]
+            img[DT:DB, x0:x0 + w] = reg * (1 - fade) + leaf * fade
+        if p < 0.05:                            # dark seam while closed
+            img[DT:DB, DL + HALF - 4:DL + HALF + 4] *= 0.55
+    burst = math.sin(math.pi * min(max((t - 0.9) / 2.6, 0), 1)) * 0.55
+    if burst > 0:
+        img = img * (1 - burst * DOOR_GLOW) + np.array([255, 246, 225], np.float32) * burst * DOOR_GLOW
+    return cover(img, 1.0 + 0.008 * t, 0.5, 0.5)
+band1 = vgrad(1380, H, (34, 26, 44), 0.0, 0.8)
+s1 = [T("வணக்கம்", "TamilFullBold.ttf", 120, 1500, 3.1, glow=True),
+      T("Vanakkam  ·  Welcome", "Cinzel.ttf", 48, 1670, 3.7),
+      El(ornament(560), 1760, 4.1),
+      T("to our Silver Jubilee celebration", "CormIt.ttf", 46, 1810, 4.4)]
+class FadeLayer:
+    def __init__(self, lay, y, t0): self.lay, self.y, self.t0 = lay, y, t0
+    def draw(self, fr, t): over(fr, self.lay, 0, self.y, ease((t - self.t0) / 0.8))
+scenes.append(Scene(7.0, bg1, [FadeLayer(band1, 1380, 2.8)] + s1, petals=False, sparks=True, vig=0.12))
 
 # 2 Ganesha (original artwork, Hindi removed, Tamil verse) ------------------
 def bg2(t): return cover(ganesha, 1.0 + 0.012 * t, 0.5, 0.45)
@@ -254,7 +293,7 @@ scenes.append(Scene(9.0, bg2, s2, sparks=True, vig=0.18))
 bg3_img = np.zeros((H, W, 3), np.float32)
 g = grad(H, [(250, 250, 253), (232, 234, 241), (246, 246, 250)]); bg3_img[:] = g[:, None, :]
 yy_, xx_ = np.mgrid[0:H, 0:W]
-glow3 = np.exp(-(((xx_ - W / 2) / 520) ** 2 + ((yy_ - 760) / 520) ** 2))[..., None]
+glow3 = np.exp(-(((xx_ - W / 2) / 520) ** 2 + ((yy_ - 460) / 520) ** 2))[..., None]
 bg3_img = bg3_img * (1 - 0.25 * glow3) + 255 * 0.25 * glow3
 fr3 = card(60, 90, W - 60, H - 90)
 leaf = Image.new("RGBA", (960, 420), (0, 0, 0, 0)); d = ImageDraw.Draw(leaf)
@@ -268,24 +307,34 @@ def bg3(t):
     fr = bg3_img.copy(); over(fr, fr3, 60, 90); return fr
 LEAF = (np.concatenate([leaf[..., :3], leaf[..., 3:]], -1))
 INK = [(70, 40, 20), (52, 28, 12), (78, 46, 24)]
-s3 = [T("திருவள்ளுவர்", "TamilFullBold.ttf", 76, 300, 0.4, stops=STEEL, shadow=(255, 255, 255), shadow_a=0.7),
-      T("திருக்குறள் · 45", "TamilFullSemi.ttf", 42, 420, 0.9, stops=PLUM, shadow=None),
-      El(ornament(520, (150, 156, 172)), 500, 1.2),
-      El(sh, 600, 1.5, rise=0), El(LEAF, 620, 1.5, rise=0),
-      T("அன்பும் அறனும் உடைத்தாயின்", "TamilFullBold.ttf", 44, 690, 2.4, stops=INK, shadow=None),
-      T("இல்வாழ்க்கை", "TamilFullBold.ttf", 44, 785, 3.0, stops=INK, shadow=None),
-      T("பண்பும் பயனும் அது.", "TamilFullBold.ttf", 44, 880, 3.6, stops=INK, shadow=None),
-      El(ornament(420, (150, 156, 172)), 1120, 4.4)]
+vl = Image.open(S + "/../images/7.png").convert("RGB").resize((560, 555), Image.LANCZOS)
+VW, VH, BR = 560 + 24, 555 + 24, 40
+vfr = Image.new("RGBA", (VW, VH), (0, 0, 0, 0)); d = ImageDraw.Draw(vfr)
+d.rounded_rectangle([0, 0, VW - 1, VH - 1], BR, fill=(176, 182, 196, 255))
+d.rounded_rectangle([5, 5, VW - 6, VH - 6], BR - 4, fill=(236, 238, 244, 255))
+msk = Image.new("L", (560, 555), 0); ImageDraw.Draw(msk).rounded_rectangle([0, 0, 559, 554], BR - 10, fill=255)
+vfr.paste(vl, (12, 12), msk)
+VAL = np.array(vfr).astype(np.float32); VAL[..., 3] /= 255
+vsh = np.zeros((VH + 60, VW + 60, 4), np.float32); vsh[30:30 + VH, 30:30 + VW, 3] = 1
+vsh[..., 3] = cv2.GaussianBlur(vsh[..., 3], (0, 0), 16) * 0.35
+s3 = [El(vsh, 140, 0.3, rise=0), El(VAL, 170, 0.3, rise=40),
+      T("திருக்குறள் · 45", "TamilFullSemi.ttf", 40, 772, 0.9, stops=PLUM, shadow=None),
+      El(ornament(520, (150, 156, 172)), 838, 1.2),
+      El(sh, 880, 1.5, rise=0), El(LEAF, 900, 1.5, rise=0),
+      T("அன்பும் அறனும் உடைத்தாயின்", "TamilFullBold.ttf", 44, 970, 2.4, stops=INK, shadow=None),
+      T("இல்வாழ்க்கை", "TamilFullBold.ttf", 44, 1065, 3.0, stops=INK, shadow=None),
+      T("பண்பும் பயனும் அது.", "TamilFullBold.ttf", 44, 1160, 3.6, stops=INK, shadow=None),
+      El(ornament(420, (150, 156, 172)), 1350, 4.4)]
 eng, _ = block(wrap("If married life is filled with love and virtue, that itself is its grace and its reward.",
-                    font("CormIt.ttf", 50), 820), "CormIt.ttf", 50, 1200, 4.8, gap=1.3, step=0.3, stops=STEEL, shadow=None)
+                    font("CormIt.ttf", 50), 820), "CormIt.ttf", 46, 1405, 4.8, gap=1.3, step=0.3, stops=STEEL, shadow=None)
 s3 += eng
-s3 += [T("அன்பும் அறமும் நிறைந்த 25 ஆண்டுகள்", "TamilFullSemi.ttf", 40, 1500, 6.0, stops=PLUM, shadow=None),
-       T("25 years of love and virtue", "Corm.ttf", 44, 1570, 6.4, stops=STEEL, shadow=None)]
+s3 += [T("அன்பும் அறமும் நிறைந்த 25 ஆண்டுகள்", "TamilFullSemi.ttf", 40, 1585, 6.0, stops=PLUM, shadow=None),
+       T("25 years of love and virtue", "Corm.ttf", 44, 1655, 6.4, stops=STEEL, shadow=None)]
 scenes.append(Scene(9.0, bg3, s3, sparks=True, vig=0.12))
 
 # 4 Couple reveal -------------------------------------------------------------
 band = vgrad(1290, H, (34, 26, 44), 0.0, 0.82)
-def bg4(t): return cover(couple, 1.0 + 0.008 * t, 0.5, 0.42)
+def bg4(t): return cover(couple_at(t), 1.0 + 0.008 * t, 0.5, 0.42)
 s4 = [T("இனிய 25-ஆம் திருமண நாள்", "TamilFullBold.ttf", 54, 1505, 1.0, glow=True),
       T("Happy 25th Wedding Anniversary", "Cinzel.ttf", 46, 1610, 1.8),
       El(ornament(520), 1700, 2.4),
@@ -294,7 +343,7 @@ scenes.append(Scene(9.0, bg4, s4, petals=True, layers=[(band, 0, 1290)], vig=0.1
 
 # 5 Names close-up ---------------------------------------------------------------
 band5 = vgrad(1150, H, (34, 26, 44), 0.0, 0.85)
-def bg5(t): return cover(couple, 1.55 + 0.02 * t, 0.5, 0.3)
+def bg5(t): return cover(couple_at(t + 3.0, 0.8), 1.55 + 0.02 * t, 0.5, 0.3)
 s5 = [T("லலிதா  &  பிரபுராம்", "TamilFullBold.ttf", 72, 1395, 0.6, glow=True),
       T("Lalitha & Praburam", "Vibes.ttf", 120, 1520, 1.4, glow=True),
       El(ornament(560), 1700, 2.2),
@@ -333,18 +382,17 @@ class Bounce(El):
         h, w = self.img.shape[:2]
         dy = -abs(math.sin((t - self.t0) * 3)) * 26 * max(0, 1 - (t - self.t0) / 2.5)
         over(fr, self.img, self.cx - w // 2, int(self.y + dy), a)
-s7 = [Bounce(pin, 520, 0.4),
-      T("விழா நடைபெறும் இடம்", "TamilFullBold.ttf", 56, 780, 1.0, stops=PLUM, shadow=None),
-      T("Venue", "Cinzel.ttf", 56, 880, 1.4, stops=STEEL, shadow=None),
-      El(ornament(460, (150, 156, 172)), 980, 1.8),
-      T("26 Sandpiper Drive", "Cinzel.ttf", 62, 1060, 2.2, stops=PLUM, shadow=None),
-      T("Shrewsbury, MA", "Cinzel.ttf", 62, 1170, 2.7, stops=PLUM, shadow=None),
-      T("Your presence will make our day complete", "CormIt.ttf", 44, 1320, 3.4, stops=STEEL, shadow=None)]
+s7 = [Bounce(pin, 530, 0.4),
+      T("Venue", "Cinzel.ttf", 72, 790, 1.0, stops=STEEL, shadow=None),
+      El(ornament(460, (150, 156, 172)), 905, 1.5),
+      T("26 Sandpiper Drive", "Cinzel.ttf", 64, 990, 2.0, stops=PLUM, shadow=None),
+      T("Shrewsbury, MA", "Cinzel.ttf", 64, 1105, 2.5, stops=PLUM, shadow=None),
+      T("Your presence will make our day complete", "CormIt.ttf", 44, 1265, 3.2, stops=STEEL, shadow=None)]
 scenes.append(Scene(7.0, bg7, s7, sparks=True, vig=0.2))
 
 # 8 Closing ----------------------------------------------------------------------------
 band8 = vgrad(1230, H, (34, 26, 44), 0.0, 0.86)
-def bg8(t): return cover(couple, 1.12 - 0.012 * t, 0.5, 0.45)
+def bg8(t): return cover(couple_at(t + 1.5), 1.12 - 0.012 * t, 0.5, 0.45)
 s8 = [T("உங்கள் வருகையும் ஆசீர்வாதமும்", "TamilFullBold.ttf", 46, 1405, 0.6, glow=True),
       T("எங்கள் மகிழ்ச்சி", "TamilFullBold.ttf", 46, 1480, 1.0, glow=True),
       T("Your presence and blessings are our joy", "CormIt.ttf", 46, 1575, 1.6),
@@ -378,6 +426,8 @@ if PREVIEW:
     for i, sc in enumerate(scenes):
         t = starts[i] + sc.dur - XF - 0.3
         Image.fromarray(frame_at(t)).resize((540, 960)).save(f"{OUT}_s{i+1}.jpg", quality=80)
+    for k, t in enumerate((0.8, 1.6, 2.4, 3.3)):
+        Image.fromarray(frame_at(t)).resize((360, 640)).save(f"{OUT}_door{k}.jpg", quality=80)
     sys.exit()
 
 n = int(TOTAL * FPS)

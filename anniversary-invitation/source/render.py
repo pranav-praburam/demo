@@ -385,9 +385,10 @@ class Bounce(El):
 s7 = [Bounce(pin, 530, 0.4),
       T("Venue", "Cinzel.ttf", 72, 790, 1.0, stops=STEEL, shadow=None),
       El(ornament(460, (150, 156, 172)), 905, 1.5),
-      T("26 Sandpiper Drive", "Cinzel.ttf", 64, 990, 2.0, stops=PLUM, shadow=None),
-      T("Shrewsbury, MA", "Cinzel.ttf", 64, 1105, 2.5, stops=PLUM, shadow=None),
-      T("Your presence will make our day complete", "CormIt.ttf", 44, 1265, 3.2, stops=STEEL, shadow=None)]
+      T("TKU Kuppanna’s Hall", "Cinzel.ttf", 58, 985, 2.0, stops=PLUM, shadow=None),
+      T("35 Solomon Pond Rd", "Cinzel.ttf", 50, 1090, 2.5, stops=STEEL, shadow=None),
+      T("Northborough, MA 01532", "Cinzel.ttf", 50, 1170, 2.9, stops=STEEL, shadow=None),
+      T("Your presence will make our day complete", "CormIt.ttf", 44, 1300, 3.4, stops=STEEL, shadow=None)]
 scenes.append(Scene(7.0, bg7, s7, sparks=True, vig=0.2))
 
 # 8 Closing ----------------------------------------------------------------------------

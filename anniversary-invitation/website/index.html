@@ -184,8 +184,9 @@ footer .names { font-size: 44px; }
       </div>
       <div>
         <h3>Venue</h3>
-        <div class="big">26 Sandpiper Drive<br>Shrewsbury, MA</div>
-        <a class="sub" href="https://www.google.com/maps/search/?api=1&query=26+Sandpiper+Drive+Shrewsbury+MA" target="_blank" rel="noopener">Open in Google Maps →</a>
+        <div class="big">TKU Kuppanna’s Hall</div>
+        <div class="ta">35 Solomon Pond Rd, Northborough, MA 01532</div>
+        <a class="sub" href="https://www.google.com/maps/search/?api=1&query=TKU+Kuppanna%27s+Hall+35+Solomon+Pond+Rd+Northborough+MA+01532" target="_blank" rel="noopener">Open in Google Maps →</a>
       </div>
     </div>
     <div class="count" id="count" aria-live="polite">
@@ -304,7 +305,7 @@ const cal = new URL("https://calendar.google.com/calendar/render");
 cal.searchParams.set("action", "TEMPLATE");
 cal.searchParams.set("text", "Lalitha & Praburam — 25th Wedding Anniversary");
 cal.searchParams.set("dates", "20261025T200000Z/20261026T010000Z");
-cal.searchParams.set("location", "26 Sandpiper Drive, Shrewsbury, MA");
+cal.searchParams.set("location", "TKU Kuppanna’s Hall, 35 Solomon Pond Rd, Northborough, MA 01532");
 cal.searchParams.set("details", "Silver Jubilee celebration, 4:00 PM – 9:00 PM." + (SITE_URL ? "\n" + SITE_URL : ""));
 $("calLink").href = cal.toString();
 
@@ -350,7 +351,7 @@ updateRsvp();
 
 // ---- host guest list (db; visible to the hosts only) ----
 function inviteText(name) {
-  return `Vanakkam ${name}! 🙏\n\nWith love, we invite you to celebrate our 25th Wedding Anniversary (Silver Jubilee).\n\n📅 Sunday, October 25, 2026\n🕓 4:00 PM – 9:00 PM\n📍 26 Sandpiper Drive, Shrewsbury, MA\n\n${SITE_URL ? "Watch our invitation and RSVP here:\n" + SITE_URL + "\n\n" : ""}Your presence and blessings are our joy.\n— Lalitha & Praburam and Family`;
+  return `Vanakkam ${name}! 🙏\n\nWith love, we invite you to celebrate our 25th Wedding Anniversary (Silver Jubilee).\n\n📅 Sunday, October 25, 2026\n🕓 4:00 PM – 9:00 PM\n📍 TKU Kuppanna’s Hall, 35 Solomon Pond Rd, Northborough, MA 01532\n\n${SITE_URL ? "Watch our invitation and RSVP here:\n" + SITE_URL + "\n\n" : ""}Your presence and blessings are our joy.\n— Lalitha & Praburam and Family`;
 }
 const LABEL = { invited: "Invited", yes: "Attending", maybe: "Maybe", no: "Not attending", new: "Not sent" };
 let guests = [], gcol = null;
